@@ -19,15 +19,18 @@
         <em></em>
         <input type="submit" value="Revisar">
     </form>
+    <p>Este formulario permite revisar si el número de una tarjeta se encuentra en la lista de las tarjetas filtradas.</p>
+    <p>Si ingresa 4 o más números, se buscarán coincidencias en la lista de tarjetas. <strong>Si antes de ingresar el número completo aparece
+        "Sin resultados", no es necesario escribir el número completo.</strong></p>
     <p>
-        Este formulario permite revisar si el número de una tarjeta se encuentra en la lista de las tarjetas filtradas. Si se ingresan 4 o más
-        dígitos, se hará una búsqueda para ver si el valor ingresado está contenido en alguno de los números de tarjetas. Si ingresó parte de su
-        tarjeta y aparece "Sin resultados", ya no es necesario ingresar el número completo.
+        <strong>Cómo funciona:</strong> 
+        Su navegador cargará la lista de números de las tarjetas que fueron filtradas. Al ingresar los dígitos, el mismo navegador,
+        sin enviar el número a ningún servidor, revisará dicha lista en su computador.
     </p>
     <p>
-        Cómo funciona: El navegador carga la lista de los números de tarjetas de la filtración, luego, revisa si el número se encuentra en dicha
-        lista. La información no sale de su computador ni se transmite a través de ningún servidor. Adicionalmente, el número de tarjeta por sí
-        solo no puede ser utilizado (excepto si un tercero ya tuviera el resto de información).
+        <strong>Descripción técnica:</strong> este repositorio tiene una lista de los números de las tarjetas filtradas. Se cargará este archivo en el navegador,
+        y este mismo se encargará de buscar en la lista si se enuentra el número o no. Adicionalmente, si se ingresan 4 o más dígitos, se hará
+        una comparación con cada número, para ver si el valor ingresado se encuentra parcialmente en algún número de tarjeta.
     </p>
     <p><strong>Si no entiende como funciona esto, o no le da confianza, no lo utilice.</strong></p>
 
