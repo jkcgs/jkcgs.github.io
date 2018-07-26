@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Revisar tarjeta</title>
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif }
+        [type=number] { padding: 0.5rem 1rem }
+        em { display: block; padding-bottom: 0.5rem }
+    </style>
+</head>
+<body>
+    <h3>Revisar tarjeta</h3>
+    <header>Cargando números de tarjeta...</header>
+    <form onsubmit="check(); return false">
+        <p><input type="number" required maxlength="16" placeholder="Número de tarjeta" oninput="runLookup()"></p>
+        <em></em>
+        <input type="submit" value="Revisar">
+    </form>
+    <p>
+        Este formulario permite revisar si el número de una tarjeta se encuentra en la lista de las tarjetas filtradas. Si se ingresan 4 o más
+        dígitos, se hará una búsqueda para ver si el valor ingresado está contenido en alguno de los números de tarjetas. Si ingresó parte de su
+        tarjeta y aparece "Sin resultados", ya no es necesario ingresar el número completo.
+    </p>
+    <p>
+        Cómo funciona: El navegador carga la lista de los números de tarjetas de la filtración, luego, revisa si el número se encuentra en dicha
+        lista. La información no sale de su computador ni se transmite a través de ningún servidor. Adicionalmente, el número de tarjeta por sí
+        solo no puede ser utilizado (excepto si un tercero ya tuviera el resto de información).
+    </p>
+
+    <script>
+        var cards = [];
+        var form = document.querySelector('form');
+        var input = document.querySelector('[type=number]');
+        var loading = document.querySelector('header');
+        form.style.display = 'none';
+
+        // Cargar el archivo de texto con las tarjetas
+        var xhr = new XMLHttpRequest();
+        xhr.responseType = 'text';
+        xhr.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // Cargarlas como un arreglo, separando por salto de línea
+                cards = xhr.responseText.split('\n');
+                form.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        };
+        xhr.open("GET", "card_numbers.txt", true);
+        xhr.send();
+
+        // Cuando se activa el formulario (botón, o enter), se revisa si hay un número idéntico al ingresado
+        function check() {
+            var number = input.value;
+            if (cards.indexOf(number) != -1) {
+                alert('NÚMERO ENCONTRADO EN LA LISTA');
+            } else {
+                alert('El número de tarjeta ingresado no se encontró en la lista');
+            }
+        }
+
+        // Revisa si el número ingresado está contenido en alguno de los números de tarjeta
+        // (para no tener que ingresar todos los números)
+        function lookup() {
+            var number = input.value;
+            if (number.length < 4) {
+                return -1;
+            }
+
+            var results = 0;
+            for (var i = 0; i < cards.length; i++) {
+                if (cards[i].indexOf(number) != -1) {
+                    results++;
+                }
+
+                if (results > 10) {
+                    // Parar la búsqueda. Deja de reirte.
+                    return 11;
+                }
+            }
+
+            return results;
+        }
+
+        // Realiza la búsqueda al cambiar el valor del input
+        function runLookup() {
+            var amount = lookup();
+            var resultText = '';
+
+            if (amount > 0) {
+                if (amount == 11) {
+                    resultText = 'Encontrados más de 10 resultados';
+                } else {
+                    resultText = 'Encontrados ' + amount + ' resultado';
+                    if (amount != 1) {
+                        resultText += 's';
+                    }
+                }
+            } else if (amount == 0) {
+                resultText = 'Sin resultados';
+            }
+
+            document.querySelector('em').innerText = resultText;
+        }
+    </script>
+</body>
+</html>
