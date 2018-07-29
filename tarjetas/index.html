@@ -1,27 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="author" content="Jonathan Gutiérrez">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Revisar tarjeta</title>
     <style>
         body { font-family: Arial, Helvetica, sans-serif }
-        [type=number] { padding: 0.5rem 1rem }
-        em { display: block; padding-bottom: 0.5rem }
+        [type=number] { padding: .5rem .7rem; font-size: 16px; -moz-appearance: textfield; appearance: textfield; }
+        [type=number]::-webkit-outer-spin-button,[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0 }
+        pre { display: block; padding-bottom: 0.5rem; font-size: 16px }
     </style>
 </head>
 <body>
     <h3>Revisar tarjeta</h3>
     <header>Cargando números de tarjeta...</header>
     <form onsubmit="check(); return false">
-        <p><input type="number" required maxlength="16" placeholder="Número de tarjeta" oninput="runLookup()"></p>
-        <em></em>
-        <input type="submit" value="Revisar">
+        <p><input type="number" required maxlength="16" placeholder="Número tarjeta" oninput="runLookup()"> <em>Número de tarjeta</em></p>
+        <p><input type="number" maxlength="4" placeholder="Últimos 4 (opcional)" oninput="runLookup()"> <em>Últimos 4 digitos (opcional)</em></p>
+        <pre></pre>
     </form>
-    <p>Este formulario permite revisar si el número de una tarjeta se encuentra en la lista de las tarjetas filtradas.</p>
-    <p>Si ingresa 4 o más números, se buscarán coincidencias en la lista de tarjetas. <strong>Si antes de ingresar el número completo aparece
-        "Sin resultados", no es necesario escribir el número completo.</strong></p>
+    <p>Este formulario permite revisar si el número de una tarjeta se encuentra en la lista de tarjetas filtradas.</p>
+    <p>A medida que ingresa números (4 o más), se buscarán coincidencias. <strong>Si antes de ingresar el número completo aparece
+        "Sin resultados", no es necesario escribir el número completo.</strong> Puede ingresar también los últimos números para filtrar
+        correctamente. Se mostrará la lista de resultados.
+    </p>
     <p>
         <strong>Cómo funciona:</strong> 
         Su navegador cargará la lista de números de las tarjetas que fueron filtradas. Al ingresar los dígitos, el mismo navegador,
@@ -30,15 +34,23 @@
     <p>
         <strong>Descripción técnica:</strong> este repositorio tiene una lista de los números de las tarjetas filtradas. Se cargará este archivo en el navegador,
         y este mismo se encargará de buscar en la lista si se enuentra el número o no. Adicionalmente, si se ingresan 4 o más dígitos, se hará
-        una comparación con cada número, para ver si el valor ingresado se encuentra parcialmente en algún número de tarjeta.
+        una comparación con cada número, para ver si el valor ingresado se encuentra parcialmente en algún número de tarjeta. La metodología de
+        búsqueda aplicada en esta página es la forma más exacta para decir si una tarjeta está en la lista de las filtradas o no.
     </p>
     <p><strong>Si no entiende como funciona esto, o no le da confianza, no lo utilice.</strong></p>
+
+    <p>
+        <a href="https://github.com/jkcgs/jkcgs.github.io/tree/master/tarjetas" title="Si, son dos archivos.">Código fuente</a> -
+        <a href='&#109;a&#105;&#108;to&#58;&#99;o&#110;%74a&#99;%74o&#64;jguti%&#54;5&#114;rez%&#50;Ec&#108;'>Contacto</a>
+    </p>
 
     <script>
         var cards = [];
         var form = document.querySelector('form');
         var input = document.querySelector('[type=number]');
+        var input2 = document.querySelectorAll('[type=number]')[1];
         var loading = document.querySelector('header');
+        var result = document.querySelector('pre');
         form.style.display = 'none';
 
         // Cargar el archivo de texto con las tarjetas
@@ -50,6 +62,7 @@
                 cards = xhr.responseText.split('\n');
                 form.style.display = 'block';
                 loading.style.display = 'none';
+                runLookup();
             }
         };
         xhr.open("GET", "cards.txt", true);
@@ -65,23 +78,43 @@
             }
         }
 
+        // Destaca en negritas los resultados
+        function highlight(val) {
+            var val1 = input.value;
+            var val2 = input2.value;
+
+            var start1 = val.indexOf(val1);
+            var end1 = start1 + val1.length;
+            var start2 = val.endsWith(val2) ? val.length - val2.length : val.length;
+            var result = '';
+
+            if (end1 >= start2) {
+                result = val.substr(0, start1);
+                result += '<strong>' + val.substr(start1) + '</strong>';
+            } else {
+                result = val.substr(0, val.length - val2.length).replace(val1, '<strong>' + val1 + '</strong>');
+                result += '<strong>' + val2 + '</strong>'
+            }
+
+            return result;
+        }
+
         // Revisa si el número ingresado está contenido en alguno de los números de tarjeta
         // (para no tener que ingresar todos los números)
         function lookup() {
             var number = input.value;
-            if (number.length < 4) {
+            if ((number.length + input2.value.length) < 4) {
                 return -1;
             }
 
-            var results = 0;
+            var results = [];
             for (var i = 0; i < cards.length; i++) {
-                if (cards[i].indexOf(number) != -1) {
-                    results++;
+                if (cards[i].indexOf(number) != -1 && (input2.value == '' || cards[i].endsWith(input2.value))) {
+                    results.push(cards[i]);
                 }
 
-                if (results > 10) {
-                    // Parar la búsqueda. Deja de reirte.
-                    return 11;
+                if (results.length > 10) {
+                    break;
                 }
             }
 
@@ -90,23 +123,31 @@
 
         // Realiza la búsqueda al cambiar el valor del input
         function runLookup() {
-            var amount = lookup();
+            var number = input.value;
+            if ((number.length + input2.value.length) < 4) {
+                return;
+            }
+
+            var results = lookup();
+            var amount = results.length;
             var resultText = '';
 
             if (amount > 0) {
-                if (amount == 11) {
-                    resultText = 'Encontrados más de 10 resultados';
+                resultText = amount == 1 ? 'Se encontró ' : 'Encontrados ';
+                if (amount > 10) {
+                    resultText += 'más de 10 resultados';
                 } else {
-                    resultText = 'Encontrados ' + amount + ' resultado';
+                    resultText += amount + ' resultado';
                     if (amount != 1) {
                         resultText += 's';
                     }
                 }
+                resultText += '\n- ' + results.map(highlight).join('\n- ');
             } else if (amount == 0) {
                 resultText = 'Sin resultados';
             }
 
-            document.querySelector('em').innerText = resultText;
+            result.innerHTML = resultText;
         }
     </script>
 </body>
