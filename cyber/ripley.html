@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>dsdasd</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+</head>
+<body>
+	<div class="container mt-3">
+		<form name="search" onsubmit="init(); return false" class="mb-3">
+			<input type="text" name="query" maxlength="512" placeholder="Search terms...">
+			<input type="submit" value="Search">
+		</form>
+
+		<table id="example" class="table" style="width:100%">
+	        <thead>
+	            <tr>
+	                <th>Brand</th>
+	                <th>Name</th>
+	                <th>Discount</th>
+	                <th>Price main</th>
+	                <th>Price card</th>
+	                <th>Price master</th>
+	                <th>Stock</th>
+	            </tr>
+	        </thead>
+	        <tfoot>
+	            <tr>
+	                <th>Brand</th>
+	                <th>Name</th>
+	                <th>Discount</th>
+	                <th>Price main</th>
+	                <th>Price card</th>
+	                <th>Price master</th>
+	                <th>Stock</th>
+	            </tr>
+	        </tfoot>
+	    </table>
+    </div>
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/algoliasearch/3/algoliasearch.min.js"></script>
+
+	<script type="text/javascript">
+		var client = algoliasearch('QZKEF78DKC', '9953399f5764aadb8d5928290a25d37f');
+		var index = client.initIndex('product_k8');
+		var datatable = null;
+
+		function querier(__, callback, _) {
+			var q = query(document.search.query.value);
+
+			console.log("loading data...");
+			index.search(q, function(e, results) {
+				console.log(results);
+				console.log("data ready");
+				callback({'data': results.hits}); 
+			});
+		}
+
+		function query(q) {
+			var x = {
+				"attributesToRetrieve": [
+					"brand",
+					"created_at",
+					"discount",
+					"name",
+					"price_card",
+					"price_main",
+					"price_master",
+					"short_description",
+					"stock",
+					"url_slug"
+				],
+				"hitsPerPage": 1000,
+				"filters": "discount > 0 AND stock > 0"
+			};
+
+			if (q != '') {
+				x.query = q;
+			}
+
+			return x;
+		}
+
+		function init() {
+			if (datatable === null) {
+				datatable = $('#example').DataTable({
+					"processing": true,
+					"ajax": querier,
+					"order": [[ 2, "desc" ]],
+					"columns": [
+						{ 
+							"data": "brand",
+							"fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+								var d = oData;
+								$(nTd).html(oData.brand).click(function(){ alert(JSON.stringify(oData)); });
+							}
+						},
+						{ 
+							"data": "name",
+							"fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+					            $(nTd).html("<a href='https://simple.ripley.cl/" + oData.url_slug + "' target='_blank'>" + oData.name + "</a>");
+					        }
+						},
+						{
+							"data": "discount",
+							"fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+					            $(nTd).html(oData.discount.toFixed(2) + "%");
+					        }
+						},
+						{ "data": "price_main" },
+						{ "data": "price_card" },
+						{ "data": "price_master" },
+						{ "data": "stock" }
+					]
+				});
+			} else {
+				datatable.ajax.reload();
+			}
+		}
+
+		init();
+	</script>
+</body>
+</html>
