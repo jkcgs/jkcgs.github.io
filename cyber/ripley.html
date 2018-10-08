@@ -112,7 +112,12 @@
 					        }
 						},
 						{ "data": "price_main" },
-						{ "data": "price_card" },
+						{
+							"data": "price_card",
+							"fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+								$(nTd).html(oData.price_card === -1 ? oData.price_main : oData.price_card);
+					        }
+						},
 						{ "data": "price_master" },
 						{ "data": "stock" }
 					]
