@@ -28,6 +28,7 @@ window.config = {
 					parser: 'YYYY-MM-DD',
 					round: 'day',
 					min: moment().subtract(1, 'years'),
+					max: moment(),
 					fillGapsWithZero: true
 				},
 				scaleLabel: {
@@ -47,6 +48,9 @@ window.config = {
 };
 
 window.addEventListener('load', function() {
+	var sinceInput = document.querySelector('input[type=date]');
+	sinceInput.min = moment().subtract(1, 'years').format('YYYY-MM-DD');
+
 	var fillScatteredTimeScaleDataPlugin = {
 		beforeUpdate: function(c) {
 			var timeAxis = c.options.scales.xAxes[0].time;
@@ -80,6 +84,10 @@ window.addEventListener('load', function() {
 				set.data.sort(function(a,b){
 					return a.x < b.x?-1:1;
 				});
+
+				var sinceMoment = moment(sinceInput.valueAsDate);
+				var since = Math.max(moment().subtract(1, 'years'), sinceMoment);
+				window.config.options.scales.xAxes[0].time.min = Math.max(since, Math.max(min, sinceMoment));
 			}
 		}
 	}
@@ -89,4 +97,5 @@ window.addEventListener('load', function() {
 	window.lineChart = new Chart(
 		document.querySelector('canvas'), window.config
 	);
+
 });

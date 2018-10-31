@@ -56,7 +56,10 @@ function loader(user, after) {
 		}
 	}).catch(function(e) {
 		console.exception(e);
-		ready_total += 1;
+		ready_count += 1;
+		if (ready_count === ready_total) {
+			alert('One or more comment pages could not be retrieved');
+		}
 	});
 }
 
