@@ -3,12 +3,19 @@
 <head>
 	<title>hey</title>
 	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="https://npmcdn.com/tags-input@1.1.1/tags-input.css">
+	<style type="text/css">
+		.tags-input {
+		    display: block;
+    		width: 100%;
+		}
+	</style>
 </head>
 <body>
 	<canvas width="300" height="100"></canvas>
 
 	<form action="javascript:;" onsubmit="loadInput(); return false;">
-		<input type="text" placeholder="comma separated users">
+		<input type="tags" placeholder="comma separated users" style="display: block;">
 		<input type="date" placeholder="since">
 		<button type="submit">load</button>
 		<span style="display: none">loading...</span>
@@ -17,7 +24,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js" async></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js" async></script>
-	<!-- <script src="https://www.chartjs.org/samples/latest/utils.js"></script> -->
+	<script src="https://npmcdn.com/tags-input@1.1.1/tags-input.js" async></script>
 	<script src="chart-config.js" async></script>
 	<script src="analyser.js" async></script>
 

@@ -19,7 +19,7 @@ function loadInput() {
 	}
 
 	loading.style.display = 'inline';
-	load(input.value.split(',').map(i => i.trim()).slice(0,5));
+	load(input.value.split(',').map(i => i.trim()));
 }
 
 function load(users) {
@@ -38,26 +38,37 @@ function loader(user, after) {
 	after = after || '';
 	var url = getUrl(user, after);
 
-	console.log('Loading:', url)
-	axios.get(url).then(function(response) {
-		var d = response.data.data;
-		posts[user] = posts[user].concat(
-			d.children.filter(
-				u => u.kind === 't1' && u.data.subreddit == 'chile'
-			).map(
-				u => u.data
-			)
-		);
-
-		if (d.after !== null) {
-			loader(user, d.after);
+	(new Promise(function (resolve, reject) {
+		if (posts[user].length && !after) {
+			resolve([user, posts[user]]);
 		} else {
-			process(user, posts[user]);
+			console.log('Loading:', url);
+			return axios.get(url).then(function(response) {
+				var d = response.data.data;
+				posts[user] = posts[user].concat(
+					d.children.filter(
+						u => u.kind === 't1' && u.data.subreddit == 'chile'
+					).map(
+						u => u.data
+					)
+				);
+
+				if (d.after !== null) {
+					loader(user, d.after);
+				} else {
+					resolve([user, posts[user]]);
+				}
+			}).catch(reject);
 		}
-	}).catch(function(e) {
-		console.exception(e);
+	}))
+	.then(function(resp) {
+		process(resp[0], resp[1]);
+	})
+	.catch(function(e) {
+		console.error(e);
 		ready_count += 1;
 		if (ready_count === ready_total) {
+			ready = true;
 			alert('One or more comment pages could not be retrieved');
 		}
 	});
@@ -79,7 +90,7 @@ function process(user, ps) {
 	data = Object.keys(data).map(k => { return { x: moment(k, 'YYYY-MM-DD').toDate(), y: data[k] }; });
 
 	var l = window.config.data.datasets.length;
-	var colour = l > colours.length ? randColour() : colours[window.config.data.datasets.length];
+	var colour = l >= colours.length ? randColour() : colours[window.config.data.datasets.length];
 	window.config.data.datasets.push({
 		label: user,
 		backgroundColor: colour,
@@ -105,4 +116,6 @@ function randColour() {
 
 window.addEventListener('load', function() {
 	ready = true;
+
+	tagsInput(document.querySelector('input[type=tags]'));
 });
